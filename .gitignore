@@ -1,3 +1,8 @@
 /venv/
 creds.json
 .idea/
+logs/
+*.log
+instance/
+*.db
+__pycache__

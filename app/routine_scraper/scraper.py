@@ -1,5 +1,5 @@
 from telethon.sync import TelegramClient
-from credentials import Credentials
+from app.credentials import Credentials
 
 
 class Scraper:

@@ -1,5 +1,5 @@
 from flask import Flask
-from endpoints.auth import auth_bp
+from app.endpoints.auth import auth_bp
 
 
 def register_blueprints(app: Flask):
