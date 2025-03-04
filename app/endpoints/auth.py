@@ -1,15 +1,17 @@
 import logging
 import re
+from flask_jwt_extended import create_access_token
 from flask import Blueprint, request, jsonify
-from flask_limiter import Limiter
 from argon2 import PasswordHasher
+from argon2.exceptions import InvalidHashError, VerifyMismatchError, VerificationError
+
 from app.db.models import Users, Languages, Roles
 from app import app
+from app.extentions import limiter
 
 
 logger = logging.getLogger(__name__)
 auth_bp = Blueprint("auth", __name__)
-limiter = Limiter(__name__)
 
 
 @auth_bp.route("/register", methods=["POST"])
@@ -37,20 +39,34 @@ def register():
                  )
     app.db.session.add(user)
     app.db.session.commit()
+    logger.info(f"User {user} added to database")
     return jsonify({"message": f"User {username!r} created!"}), 201
 
 
-@auth_bp.route("/login")
+@auth_bp.route("/login", methods=["POST"])
 @limiter.limit("5 per minute")
 def login():
     data = request.get_json()
     username = data.get("username")
     password = data.get("password")
+    user = Users.query.filter_by(username=username).first()
+    if user:
+        if is_password_hash_valid(password, user.password_hash):
+            access_token = create_access_token(identity=user.id)
+            return jsonify({
+                "access_token": access_token,
+                "user_id": user.id
+            }), 200
+    return jsonify("Invalid credentials"), 401
 
 
 def is_password_hash_valid(password, password_hash_in_database):
     pwh = PasswordHasher()
-    return pwh.verify(password_hash_in_database, password)
+    try:
+        return pwh.verify(password_hash_in_database, password)
+    except (InvalidHashError, VerifyMismatchError, VerificationError):
+        logger.error(f'Password validation failed. Password hash entered: {create_password_hash(password)}, '
+                     f'password hash in db: {password_hash_in_database}')
 
 
 def is_password_not_valid(password):
@@ -72,7 +88,7 @@ def create_password_hash(password):
 
 
 def is_email_unique(email):
-    return True if not Users.query.filter_by(email=email).first() else False
+    return not bool(Users.query.filter_by(email=email).first())
 
 
 def is_email_valid(email):
@@ -81,7 +97,7 @@ def is_email_valid(email):
 
 
 def is_username_free(username):
-    return True if not Users.query.filter_by(username=username).first() else False
+    return not bool(Users.query.filter_by(username=username).first())
 
 
 def get_role_id(role):
