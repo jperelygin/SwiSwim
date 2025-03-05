@@ -6,3 +6,4 @@ logs/
 instance/
 *.db
 __pycache__
+app/routine_scraper/result.json
