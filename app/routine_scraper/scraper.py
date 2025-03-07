@@ -18,7 +18,7 @@ class Scraper:
         self.looked = 0
         self.json_file = json_file
         self.target_hashtags = {"#level1", "#level2", "#level3"}
-        self.styles = {"#комплекс", }
+        self.styles = {"#комплекс", '#брасс', '#кроль', '#спина'}
         self.pre_workout_text = "Разминка"
         self.main_workout_text = "Основное"
         self.post_workout_text = "Закупка"
@@ -66,6 +66,20 @@ class Scraper:
         match = re.search(r'\d+', text)
         if match:
             return int(match.group(0))
+
+class HtmlScraper:
+    def __init__(self, html_file):
+        self.messages = set()
+        self.looked = 0
+        self.json_file = html_file
+        self.target_hashtags = {"#level1", "#level2", "#level3"}
+        self.styles = {"#комплекс", '#брасс', '#кроль', '#спина'}
+        self.pre_workout_text = "Разминка"
+        self.main_workout_text = "Основное"
+        self.post_workout_text = "Закупка"
+        self.capacity_text = "Объем"
+
+    def 
 
 
 if __name__ == "__main__":
